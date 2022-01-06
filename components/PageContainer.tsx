@@ -16,7 +16,7 @@ export default function PageContainer({
 }: PageContainerProps): JSX.Element {
   const router = useRouter()
 
-  const [current, setCurrent] = useState<MenuType>('relations')
+  const [current, setCurrent] = useState<MenuType | null>(null)
 
   useEffect(() => {
     if (router.isReady) {

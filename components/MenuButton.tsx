@@ -5,7 +5,7 @@ export type MenuType = 'relations' | 'cips' | 'view'
 interface MenuButtonProps {
   title: string
   value: MenuType
-  current: MenuType
+  current: MenuType | null
   moveTo: (page: MenuType) => void
 }
 

@@ -26,7 +26,7 @@ export const getServerSideProps: GetServerSideProps<{
   return { props: { relations, project } }
 }
 
-export default function ProjectHome({
+export default function RelationsViewer({
   relations,
   project,
 }: InferGetServerSidePropsType<typeof getServerSideProps>): JSX.Element {
