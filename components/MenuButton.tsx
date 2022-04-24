@@ -21,7 +21,7 @@ export default function MenuButton({
 
   return (
     <Button
-      colorScheme={current === value ? 'blue' : undefined}
+      colorScheme={current === value ? 'blue' : 'blackAlpha'}
       onClick={onClick}
     >
       {title}

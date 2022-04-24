@@ -1,4 +1,12 @@
-import { HStack, Link, ListItem, Tag } from '@chakra-ui/react'
+import { AddIcon } from '@chakra-ui/icons'
+import {
+  HStack,
+  IconButton,
+  Link,
+  ListItem,
+  Spacer,
+  Tag,
+} from '@chakra-ui/react'
 import { useMemo } from 'react'
 import { Exported } from 'server/model/database'
 import { RelationModel } from 'server/model/relations'
@@ -6,11 +14,13 @@ import { RelationModel } from 'server/model/relations'
 interface RelationItemProps {
   relation: Exported<RelationModel>
   onOpenFileLocations: (locations: string[]) => void
+  onOpenConnectionTypeForm: (relation: Exported<RelationModel>) => void
 }
 
 export default function RelationItem({
   relation,
   onOpenFileLocations,
+  onOpenConnectionTypeForm,
 }: RelationItemProps): JSX.Element {
   const targetFuncs: string[] = useMemo(
     () =>
@@ -54,6 +64,10 @@ export default function RelationItem({
     )
   }
 
+  const addConnectorType = () => {
+    onOpenConnectionTypeForm(relation)
+  }
+
   return (
     <ListItem
       py={2}
@@ -74,6 +88,16 @@ export default function RelationItem({
         >
           {relation.targetModule}
         </Link>
+
+        <Spacer />
+
+        <IconButton
+          aria-label="Add a connector type"
+          variant="ghost"
+          size="sm"
+          onClick={addConnectorType}
+          icon={<AddIcon w={3} h={3} />}
+        />
       </HStack>
 
       <HStack wrap="wrap">

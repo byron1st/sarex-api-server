@@ -18,7 +18,7 @@ export default function Home({
   const router = useRouter()
 
   const moveToProject = (id: string) => {
-    router.push(`/p/${id}`)
+    router.push(`/p/${id}/relations`)
   }
 
   return (

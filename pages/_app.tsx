@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import NProgress from 'nprogress'
 import Head from 'next/head'
+import { SWRConfig } from 'swr'
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter()
@@ -34,7 +35,14 @@ function MyApp({ Component, pageProps }: AppProps) {
           href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css"
         />
       </Head>
-      <Component {...pageProps} />
+      <SWRConfig
+        value={{
+          fetcher: (resource, init) =>
+            fetch(resource, init).then((res) => res.json()),
+        }}
+      >
+        <Component {...pageProps} />
+      </SWRConfig>
     </ChakraProvider>
   )
 }

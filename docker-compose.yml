@@ -1,0 +1,17 @@
+services:
+  researchdb:
+    image: mongo:5.0.5
+    container_name: researchdb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1g"
+        max-file: "1"
+    volumes:
+      - researchdb:/data/db
+    ports:
+      - "8081:27017"
+    env_file: .env.db
+
+volumes:
+  researchdb:
