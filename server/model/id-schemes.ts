@@ -19,3 +19,20 @@ export async function upsertIDScheme(newScheme: IDSchemeModel): Promise<void> {
       { upsert: true },
     )
 }
+
+export async function upsertIDSchemes(
+  names: string[],
+  projectID: string,
+): Promise<void> {
+  const db = await getDB()
+
+  await db.collection<IDSchemeModel>(collName).bulkWrite(
+    names.map((name) => ({
+      updateOne: {
+        filter: { name, projectID },
+        update: { $set: { name, projectID } },
+        upsert: true,
+      },
+    })),
+  )
+}

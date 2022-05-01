@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CIPModel, createCIP, readCIPsByType } from 'server/model/cips'
+import { upsertIDSchemes } from 'server/model/id-schemes'
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,6 +24,9 @@ export default async function handler(
         res.status(400).json({ error: 'wrong request parameter' })
         return
       }
+
+      const names = new Set({ ...body.sourceIDScheme, ...body.targetIDScheme })
+      await upsertIDSchemes(Array.from(names), projectID)
 
       await createCIP({ ...body, projectID })
 

@@ -11,6 +11,9 @@ import {
   Button,
   ButtonGroup,
   Text,
+  Heading,
+  Textarea,
+  Select,
 } from '@chakra-ui/react'
 import PageContainer from 'components/PageContainer'
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
@@ -28,6 +31,7 @@ import {
   readConnectorType,
 } from 'server/model/connector-types'
 import { Exported } from 'server/model/database'
+import { IDSchemeModel } from 'server/model/id-schemes'
 import { ProjectModel, readProject } from 'server/model/projects'
 import {
   CallModel,
@@ -58,6 +62,8 @@ export const getServerSideProps: GetServerSideProps<{
   return { props: { project, connectorType, relations } }
 }
 
+type IDScheme = Omit<IDSchemeModel, 'projectID'>
+
 export default function CIPsViewer({
   project,
   connectorType,
@@ -65,8 +71,9 @@ export default function CIPsViewer({
 }: InferGetServerSidePropsType<typeof getServerSideProps>): JSX.Element {
   const router = useRouter()
 
-  const [sourceIDSchemeItems, setSourceIDSchemeItems] = useState<string[]>([])
-  const [targetIDSchemeItems, setTargetIDSchemeItems] = useState<string[]>([])
+  const [sourceIDSchemeItems, setSourceIDSchemeItems] = useState<IDScheme[]>([])
+  const [targetIDSchemeItems, setTargetIDSchemeItems] = useState<IDScheme[]>([])
+  const [selectedCall, setSelectedCall] = useState<string>()
   const [selectedCallIndex, setSelectedCallIndex] = useState<string>('0')
   const [calls, setCalls] = useState<CallModel[]>([])
 
@@ -80,6 +87,52 @@ export default function CIPsViewer({
       )
     }
   }, [connectorType, relations])
+
+  const addSourceIDScheme = (newScheme: IDScheme): void => {
+    setSourceIDSchemeItems((items) => {
+      if (items.some((i) => i.name === newScheme.name)) {
+        return items
+      }
+
+      return [...items, newScheme]
+    })
+  }
+
+  const removeSourceIDScheme = (name: string): void => {
+    setSourceIDSchemeItems((items) => {
+      const index = items.findIndex((i) => i.name === name)
+      if (index === -1) {
+        return items
+      }
+
+      const newItems: IDScheme[] = JSON.parse(JSON.stringify(items))
+      newItems.splice(index, 1)
+      return newItems
+    })
+  }
+
+  const addTargetIDScheme = (newScheme: IDScheme): void => {
+    setTargetIDSchemeItems((items) => {
+      if (items.some((i) => i.name === newScheme.name)) {
+        return items
+      }
+
+      return [...items, newScheme]
+    })
+  }
+
+  const removeTargetIDScheme = (name: string): void => {
+    setTargetIDSchemeItems((items) => {
+      const index = items.findIndex((i) => i.name === name)
+      if (index === -1) {
+        return items
+      }
+
+      const newItems: IDScheme[] = JSON.parse(JSON.stringify(items))
+      newItems.splice(index, 1)
+      return newItems
+    })
+  }
 
   const onCallIndexChange = (nextValue: string) => {
     setSelectedCallIndex(nextValue)
@@ -122,41 +175,93 @@ export default function CIPsViewer({
           </ButtonGroup>
         </HStack>
 
-        <StringListInput
+        <IDSchemeInput
           label="Source ID Scheme"
-          list={sourceIDSchemeItems}
-          setList={setSourceIDSchemeItems}
+          schemes={sourceIDSchemeItems}
+          addScheme={addSourceIDScheme}
+          removeScheme={removeSourceIDScheme}
         />
 
-        <StringListInput
+        <IDSchemeInput
           label="Target ID Scheme"
-          list={targetIDSchemeItems}
-          setList={setTargetIDSchemeItems}
+          schemes={targetIDSchemeItems}
+          addScheme={addTargetIDScheme}
+          removeScheme={removeTargetIDScheme}
         />
 
         <FormControl>
           <FormLabel>Function Condition</FormLabel>
-          <RadioGroup
-            w="full"
-            value={selectedCallIndex}
-            onChange={onCallIndexChange}
-          >
-            <VStack w="full" overflowY="auto" px={2}>
-              {calls.map((call, index) => (
-                <Radio
-                  value={`${index}`}
-                  w="full"
-                  size="sm"
-                  key={`call_${index}`}
-                >
-                  {call.sourcelocation}.{call.targetfunc}
-                </Radio>
-              ))}
-            </VStack>
-          </RadioGroup>
+          <Select>
+            {calls.map((call, index) => (
+              <option value={`${index}`} key={`call_${index}`}>
+                {call.sourcelocation}.{call.targetfunc}
+              </option>
+            ))}
+          </Select>
         </FormControl>
       </VStack>
     </PageContainer>
+  )
+}
+
+interface IDSchemeInputProps {
+  label: string
+  schemes: IDScheme[]
+  addScheme: (newScheme: IDScheme) => void
+  removeScheme: (name: string) => void
+}
+
+function IDSchemeInput({
+  label,
+  schemes,
+  addScheme,
+  removeScheme,
+}: IDSchemeInputProps): JSX.Element {
+  const [name, setName] = useState<string>('')
+  const [howTo, setHowTo] = useState<string>('')
+
+  const onNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value)
+  }
+
+  const onHowToChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setHowTo(e.target.value)
+  }
+
+  const add = () => {
+    if (name) {
+      addScheme({ name, howTo })
+      setName('')
+      setHowTo('')
+    }
+  }
+
+  return (
+    <>
+      <Heading size="md">{label}</Heading>
+      <FormControl isRequired>
+        <FormLabel>Name</FormLabel>
+        <Input value={name} onChange={onNameChange} />
+      </FormControl>
+      <FormControl>
+        <FormLabel>How to?</FormLabel>
+        <Textarea value={howTo} onChange={onHowToChange} />
+      </FormControl>
+      <Button onClick={add}>Add a ID Scheme</Button>
+
+      <HStack w="full" flexWrap="wrap">
+        <Text fontWeight="bold">{'<'}</Text>
+
+        {schemes.map((item) => (
+          <Tag css={{ flexShrink: 0 }} key={`sourceid_${item.name}`}>
+            {item.name}
+            <TagCloseButton onClick={() => removeScheme(item.name)} />
+          </Tag>
+        ))}
+
+        <Text fontWeight="bold">{'>'}</Text>
+      </HStack>
+    </>
   )
 }
 
